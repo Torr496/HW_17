@@ -62,7 +62,7 @@ class DirectorSchema(Schema):
 api = Api(app)
 movie_ns = api.namespace("movie")
 directors_ns = api.namespace("director")
-genre_ns = api.namespace("genre")
+genres_ns = api.namespace("genre")
 
 movie_schema = MovieSchema()
 movies_schema = MovieSchema(many=True)
@@ -93,8 +93,6 @@ class MovieViews(Resource):
             return "",404
 
 
-
-
 @movie_ns.route('/<int:nid>')
 class MovieView(Resource):
     def get(self, nid):
@@ -112,8 +110,8 @@ class DirectorPost(Resource):
         new_director = Genre(**req_json)
         with db.session.begin():
             db.session.add(new_director)
+            db.session.commit()
         return "",201
-
 
 
 @directors_ns.route("/<int:uid>")
@@ -138,6 +136,31 @@ class DirectorView(Resource):
             return "", 200
         else:
             return "",404
+
+
+@genres_ns.route("/<int:uid>")
+class GenreView(Resource):
+
+    def put(self, uid: int):
+        genre = Genre.query.get(uid)
+        if genre:
+            req_json = request.json
+            genre.name = req_json.get("name")
+            db.session.add(genre)
+            db.session.commit()
+            return "", 200
+        else:
+            return "",404
+
+    def delete(self, uid: int):
+        genre = Genre.query.get(uid)
+        if genre:
+            db.session.delete(genre)
+            db.session.commit()
+            return "", 200
+        else:
+            return "",404
+
 
 if __name__ == '__main__':
     app.run(debug=True)
